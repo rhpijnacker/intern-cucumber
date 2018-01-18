@@ -1,0 +1,20 @@
+{
+	"capabilities": { "name": "intern-cucumber" },
+	"environments": [
+		"node",
+		{
+			"browserName": "chrome",
+			"fixSessionCapabilities": false
+		}
+	],
+	"node": {
+		"suites": [
+			"tests/unit/**/*.js"
+		],
+		"plugins": [
+			"tests/support/nodeMocking.js"
+		]
+	},
+	// "coverage": "src/**/*.js",
+	"filterErrorStack": true
+}

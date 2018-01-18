@@ -1,0 +1,33 @@
+{
+  "name": "intern-cucumber",
+  "version": "0.0.1",
+  "description": "cucumber-js interface for intern",
+  "main": "src/plugin.js",
+  "scripts": {
+    "test": "NODE_PATH=. intern"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rhpijnacker/intern-cucumber.git"
+  },
+  "keywords": [
+    "intern",
+    "cucumber-js",
+    "bdd"
+  ],
+  "author": "Ronald Pijnacker",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/rhpijnacker/intern-cucumber/issues"
+  },
+  "homepage": "https://github.com/rhpijnacker/intern-cucumber#readme",
+  "devDependencies": {
+    "sinon": "^4.1.6",
+    "umd-compat-loader": "^2.1.1",
+    "webpack": "^3.10.0"
+  },
+  "dependencies": {
+    "cucumber": "^3.2.1",
+    "intern": "^4.1.5"
+  }
+}

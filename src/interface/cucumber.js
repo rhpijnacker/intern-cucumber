@@ -11,16 +11,14 @@ exports.Given = cucumber.Given;
 exports.Then = cucumber.Then;
 exports.When = cucumber.When;
 
-function registerCucumber(featureSource /*, ...stepDefinitionInitializers */) {
-    let stepDefinitionInitializers = Array.prototype.slice.call(arguments, 1);
+function registerCucumber(featureSource, ...stepDefinitionInitializers) {
     return _registerCucumber(global.default.intern, featureSource, stepDefinitionInitializers);
 }
 exports.default = registerCucumber;
 
 function getInterface(executor) {
     return {
-        registerCucumber: function(featureSource /*, ...stepDefinitionInitializers */) {
-            let stepDefinitionInitializers = Array.prototype.slice.call(arguments, 1);
+        registerCucumber: function(featureSource, ...stepDefinitionInitializers) {
             return _registerCucumber(executor, featureSource, stepDefinitionInitializers);
         },
         // Make cucumber interface available

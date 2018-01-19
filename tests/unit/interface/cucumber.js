@@ -58,24 +58,25 @@ registerSuite('interface/cucumber', function() {
 
             'registerCucumber should add a suite'() {
                 const interface = cucumberInterface.getInterface(executor);
-                interface.registerCucumber('Feature: ...');
+                interface.registerCucumber('dummy', 'Feature: ...');
                 assert.equal(executor.addSuite.callCount, 1, 'addSuite should have been called once');
                 assert.lengthOf(rootSuite.tests, 1, 'There should be exactly one child suite');
-                assert.instanceOf(rootSuite.tests[0], Suite.default, 'Child suite 1 should be a suite instance');
-                assert.equal(rootSuite.tests[0].name, 'x', 'Child suite 1 should have no name');
-                assert.lengthOf(rootSuite.tests[0].tests, 0, 'Child suite 1 should have no tests');
+                assert.instanceOf(rootSuite.tests[0], Suite.default, 'Child suite should be a suite instance');
+                assert.equal(rootSuite.tests[0].name, 'dummy', 'Child suite should have the right name');
+                assert.lengthOf(rootSuite.tests[0].tests, 0, 'Child suite should have no tests');
             },
 
             'registering a dummy cucumber should create one empty child suite'() {
-                cucumberInterface.default('Feature: ...');
+                cucumberInterface.default('dummy', 'Feature: ...');
                 assert.lengthOf(rootSuite.tests, 1, 'There should be exactly one child suite');
                 assert.instanceOf(rootSuite.tests[0], Suite.default, 'Child suite should be a suite instance');
-                assert.equal(rootSuite.tests[0].name, 'x', 'Child suite should have no name');
+                assert.equal(rootSuite.tests[0].name, 'dummy', 'Child suite should have the right name');
                 assert.lengthOf(rootSuite.tests[0].tests, 0, 'Child suite should have no tests');
             },
 
             'one scenario should give one sub-suite with one test case'() {
                 cucumberInterface.default(
+                    'single scenario',
                     'Feature: ...\nScenario: A scenario\nGiven x = 5',
                     () => { cucumberInterface.Given('x = 5', () => {}); }
                 );
@@ -99,6 +100,7 @@ registerSuite('interface/cucumber', function() {
 
             'a scenario outline should give multiple test cases'() {
                 cucumberInterface.default(
+                    'scenario outline',
                     'Feature: ...\nScenario Outline: A scenario with examples\nGiven x = <x>\nExamples:\n|x|\n|1|\n|2|\n|3|\n',
                     () => { cucumberInterface.Given('x = {int}', function(value) {}); }
                 );
@@ -127,6 +129,7 @@ registerSuite('interface/cucumber', function() {
 
             'it should be possible to pass multiple step definition functions'() {
                 cucumberInterface.default(
+                    'multiple step definitions',
                     'Feature: ...\nScenario: A scenario\nGiven x = 5\nThen x == 5',
                     () => { cucumberInterface.Given('x = 5', () => {}); },
                     () => { cucumberInterface.Then('x == 5', () => {}); }
@@ -140,6 +143,7 @@ registerSuite('interface/cucumber', function() {
 
             'failing steps should give an error'() {
                 cucumberInterface.default(
+                    'failing steps',
                     'Feature: ...\nScenario: A failing test step\nGiven x = 5\nAnd y = 5',
                     () => {
                         cucumberInterface.Given('x = 5', () => {});
@@ -160,6 +164,7 @@ registerSuite('interface/cucumber', function() {
 
             'missing Given step definition should give an error'() {
                 cucumberInterface.default(
+                    'missing step definition',
                     'Feature: ...\nScenario: A failing test step\nGiven x = 5',
                     () => {}
                 );
@@ -177,7 +182,7 @@ registerSuite('interface/cucumber', function() {
 
             'syntax errors in the feature source should give an error'() {
                 this.skip('skipped until exception is fixed');
-                cucumberInterface.default('... garbage in ...', () => {});
+                cucumberInterface.default('garbage', '... garbage in ...', () => {});
                 return rootSuite.run().then(() => {
                     assert.lengthOf(rootSuite.tests[0].tests, 0, 'Suite should have no sub-suite/tests');
                     assert.isDefined(rootSuite.tests[0].error, 'Suite should have an error');

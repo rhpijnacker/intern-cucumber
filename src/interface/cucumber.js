@@ -6,39 +6,40 @@ const Test = require('intern/lib/Test');
 
 const events = require('events');
 
-// Make cucumber interface available
-exports.Given = cucumber.Given;
-exports.Then = cucumber.Then;
-exports.When = cucumber.When;
-
-function registerCucumber(featureSource, ...stepDefinitionInitializers) {
-    return _registerCucumber(global.default.intern, featureSource, stepDefinitionInitializers);
+function registerCucumber(name, featureSource, ...stepDefinitionInitializers) {
+    return _registerCucumber(global.default.intern, name, featureSource, stepDefinitionInitializers);
 }
 exports.default = registerCucumber;
 
 function getInterface(executor) {
-    return {
-        registerCucumber: function(featureSource, ...stepDefinitionInitializers) {
-            return _registerCucumber(executor, featureSource, stepDefinitionInitializers);
-        },
-        // Make cucumber interface available
-        Given: cucumber.Given,
-        When: cucumber.When,
-        Then: cucumber.Then
+    let iface = {
+        registerCucumber: function(name, featureSource, ...stepDefinitionInitializers) {
+            return _registerCucumber(executor, name, featureSource, stepDefinitionInitializers);
+        }
     };
+    _publishCucumberInterface(iface);
+    return iface;
 }
 exports.getInterface = getInterface;
 
-function _registerCucumber(executor, featureSource, stepDefinitionInitializers) {
+_publishCucumberInterface(exports);
+
+function _publishCucumberInterface(iface) {
+    iface.Given = cucumber.Given;
+    iface.Then = cucumber.Then;
+    iface.When = cucumber.When;
+}
+
+function _registerCucumber(executor, name, featureSource, stepDefinitionInitializers) {
     executor.addSuite(function(parent) {
-        let suite = _createSuite(featureSource, stepDefinitionInitializers);
+        let suite = _createSuite(name, featureSource, stepDefinitionInitializers);
         parent.add(suite);
     });
 }
 
-function _createSuite(featureSource, stepDefinitionInitializers) {
+function _createSuite(name, featureSource, stepDefinitionInitializers) {
     let suite = new Suite.default({
-        name: 'x',
+        name,
         run: () => {
             return new Task.default((resolve, reject) => {
                 try {
@@ -70,40 +71,44 @@ function _createSuite(featureSource, stepDefinitionInitializers) {
 function _createEventBroadcaster(suite) {
     let eventBroadcaster = new events.EventEmitter();
     let eventDataCollector = new cucumber.formatterHelpers.EventDataCollector(eventBroadcaster);
-    let subSuite, test, prevSuiteName, sameSuiteCount;
+    let subSuite, test, prevSuiteName, sameSuiteCount, suiteStart, subSuiteStart, testStart;
 
     eventBroadcaster.on('test-run-started', () => {
-        suite.executor.emit('suiteStart', suite);
+        suite.executor.emit('suiteStart', suite).then(() => {
+            suiteStart = Date.now();
+        });
     });
     eventBroadcaster.on('test-run-finished', () => {
-       suite.executor.emit('suiteEnd', suite);
+        suite.timeElapsed = Date.now() - suiteStart;
+        suite.executor.emit('suiteEnd', suite);
     });
 
     eventBroadcaster.on('test-case-prepared', (event) => {
         // console.log('test-case-prepared event:', event);
     });
     eventBroadcaster.on('test-case-started', (event) => {
-        // console.log('\ntest-case-started event:', event);
-        let data = eventDataCollector.getTestCaseData(event.sourceLocation);
-        // console.log('test-case-started data:', data);
         try {
+            let data = eventDataCollector.getTestCaseData(event.sourceLocation);
             let name = data.pickle.name;
-            if (name === prevSuiteName) {
+            if (prevSuiteName !== name) {
+                prevSuiteName = name;
+                sameSuiteCount = 1;
+            } else {
                 sameSuiteCount++;
                 name = `${name} (${sameSuiteCount})`;
-            } else {
-                sameSuiteCount = 1;
             }
-            prevSuiteName = data.pickle.name;
             subSuite = new Suite.default({ name: name });
             suite.add(subSuite);
-            suite.executor.emit('suiteStart', subSuite);
+            suite.executor.emit('suiteStart', subSuite).then(() => {
+                subSuiteStart = Date.now();
+            });
         } catch(e) {
             suite.error = e;
             console.log(e);
         }
     });
     eventBroadcaster.on('test-case-finished', () => {
+        subSuite.timeElapsed = Date.now() - subSuiteStart;
         suite.executor.emit('suiteEnd', subSuite);
         subSuite = null;
     });
@@ -112,22 +117,22 @@ function _createEventBroadcaster(suite) {
         // console.log('test-step-attachment event:', event);
     });
     eventBroadcaster.on('test-step-started', (event) => {
-        // console.log('\ntest-step-started event:', event);
-        // console.log('test-step-started step data:', data);
         try {
             let data = eventDataCollector.getTestStepData(event);
             let name = `${data.gherkinKeyword}${data.pickleStep.text}`
             test = new Test.default({ name, test: () => {} });
             subSuite.add(test);
-            suite.executor.emit('testStart', test);
+            suite.executor.emit('testStart', test).then(() => {
+                testStart = Date.now();
+            });
         } catch(e) {
             suite.error = e;
             console.log(e);
         }
     });
     eventBroadcaster.on('test-step-finished', (event) => {
-        // console.log('\ntest-step-finished event:', event);
         try {
+            test._timeElapsed = Date.now() - testStart;
             test._hasPassed = event.result.status === cucumber.Status.PASSED;
             if (event.result.status === cucumber.Status.FAILED) {
                 let exception = event.result.exception;

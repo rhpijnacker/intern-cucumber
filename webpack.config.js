@@ -9,17 +9,23 @@ let config = {
 		filename: '[name].js',
 		path: path.join(__dirname, '_build/browser')
 	},
-	externals: {
-		intern: 'intern',
-		global: '@dojo/shim/global',
-		Task: '@dojo/core/async/Task'
-	},
-	devtool: '#inline-source-map',
+	devtool: 'source-map',
 	module: {
 		rules: [
 			{
 				test: /\.js$/,
+				include: /node_modules/,
 				use: 'umd-compat-loader'
+			},
+			{
+				test: /\.js$/,
+				exclude: /node_modules/,
+				use: {
+					loader: 'babel-loader',
+					options: {
+						presets: ['babel-preset-env']
+					}
+				}
 			}
 		]
 	},

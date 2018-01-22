@@ -106,7 +106,7 @@ registerSuite('interface/cucumber', function() {
                 );
                 return rootSuite.run().then(() => {
                     let parentSuite = rootSuite.tests[0];
-                    assert.strictEqual(parentSuite.tests.length, 3, 'Parent suite 1 should have three sub-suites');
+                    assert.lengthOf(parentSuite.tests, 3, 'Parent suite 1 should have three sub-suites');
                     parentSuite.tests.forEach((subSuite) => {
                         assert.instanceOf(subSuite, Suite.default, 'Sub-suite should be a suite instance');
                         assert.lengthOf(subSuite.tests, 1, 'Sub-suite should have one test');
@@ -122,8 +122,26 @@ registerSuite('interface/cucumber', function() {
                     assert.equal(parentSuite.tests[1].tests[0].name, 'Given x = 2', 'Test 2 should have the right name');
                     assert.equal(parentSuite.tests[2].tests[0].name, 'Given x = 3', 'Test 3 should have the right name');
 
-                    assert.strictEqual(parentSuite.numTests, 3, 'numTests shoud be 3');
-                    assert.strictEqual(parentSuite.numFailedTests, 0, 'numFailedTests shoud be 0');
+                    assert.equal(parentSuite.numTests, 3, 'numTests shoud be 3');
+                    assert.equal(parentSuite.numFailedTests, 0, 'numFailedTests should be 0');
+                });
+            },
+
+            'it should be possible to perfom scenario step multiple times'() {
+                cucumberInterface.default(
+                    'repeating scenario step',
+                    'Feature: ...\nScenario: A scenario\nGiven x = 5\nAnd x = 5\nAnd x = 5',
+                    () => { cucumberInterface.Given('x = 5', () => {}); }
+                );
+                return rootSuite.run().then(() => {
+                    let subSuite = rootSuite.tests[0].tests[0];
+                    assert.lengthOf(subSuite.tests, 3, 'Sub-suite should have three tests');
+                    assert.equal(subSuite.tests[0].name, 'Given x = 5', 'Test 1 should have the right name');
+                    assert.equal(subSuite.tests[1].name, 'And x = 5', 'Test 2 should have the right name');
+                    assert.equal(subSuite.tests[2].name, 'And x = 5 (2)', 'Test 2 should have the right name');
+
+                    assert.equal(subSuite.numTests, 3, 'numTests should be 3');
+                    assert.equal(subSuite.numFailedTests, 0, 'numFailedTests should be 0');
                 });
             },
 

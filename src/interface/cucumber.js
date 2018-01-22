@@ -71,9 +71,11 @@ function _createSuite(name, featureSource, stepDefinitionInitializers) {
 function _createEventBroadcaster(suite) {
     let eventBroadcaster = new events.EventEmitter();
     let eventDataCollector = new cucumber.formatterHelpers.EventDataCollector(eventBroadcaster);
-    let subSuite, test, prevSuiteName, sameSuiteCount, suiteStart, subSuiteStart, testStart;
+    let subSuite, test, used;
+    let suiteStart, subSuiteStart, testStart;
 
     eventBroadcaster.on('test-run-started', () => {
+        used = { suite: {}, test: {} }; // reset used suite/test names
         suite.executor.emit('suiteStart', suite).then(() => {
             suiteStart = Date.now();
         });
@@ -88,18 +90,17 @@ function _createEventBroadcaster(suite) {
     });
     eventBroadcaster.on('test-case-started', (event) => {
         try {
+            used.test = {}; // reset used test names
             let data = eventDataCollector.getTestCaseData(event.sourceLocation);
             let name = data.pickle.name;
-            if (prevSuiteName !== name) {
-                prevSuiteName = name;
-                sameSuiteCount = 1;
-            } else {
-                sameSuiteCount++;
-                name = `${name} (${sameSuiteCount})`;
+            let isReused = used.suite[name];
+            used.suite[name] = (used.suite[name] || 0) + 1;
+            if (isReused) {
+                name = `${name} (${used.suite[name]})`;
             }
             subSuite = new Suite.default({ name: name });
             suite.add(subSuite);
-            suite.executor.emit('suiteStart', subSuite).then(() => {
+            subSuite.executor.emit('suiteStart', subSuite).then(() => {
                 subSuiteStart = Date.now();
             });
         } catch(e) {
@@ -109,7 +110,7 @@ function _createEventBroadcaster(suite) {
     });
     eventBroadcaster.on('test-case-finished', () => {
         subSuite.timeElapsed = Date.now() - subSuiteStart;
-        suite.executor.emit('suiteEnd', subSuite);
+        subSuite.executor.emit('suiteEnd', subSuite);
         subSuite = null;
     });
 
@@ -120,9 +121,14 @@ function _createEventBroadcaster(suite) {
         try {
             let data = eventDataCollector.getTestStepData(event);
             let name = `${data.gherkinKeyword}${data.pickleStep.text}`
+            let isReused = used.test[name];
+            used.test[name] = (used.test[name] || 0) + 1;
+            if (isReused) {
+                name = `${name} (${used.test[name]})`;
+            }
             test = new Test.default({ name, test: () => {} });
             subSuite.add(test);
-            suite.executor.emit('testStart', test).then(() => {
+            test.executor.emit('testStart', test).then(() => {
                 testStart = Date.now();
             });
         } catch(e) {
@@ -143,7 +149,7 @@ function _createEventBroadcaster(suite) {
                 let message = `"${test.name}" does not have a matching step definition`;
                 test.error = new Error(message);
             }
-            suite.executor.emit('testEnd', test);
+            test.executor.emit('testEnd', test);
             test = null;
         } catch(e) { 
             suite.error = e;

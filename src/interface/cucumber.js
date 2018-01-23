@@ -168,7 +168,11 @@ function _createFeatureRunner(featureSource, stepDefinitionInitializers, eventBr
     });
 
     cucumber.supportCodeLibraryBuilder.reset('/');
-    stepDefinitionInitializers.forEach((initializer) => { initializer(); });
+    stepDefinitionInitializers.forEach((initializer) => {
+        // Pass the cucumber as the `this' context to every step definition function
+        // for backward compatibility with the intern 3 cucumber integration.
+        initializer.call(cucumber);
+    });
     let supportCodeLibrary = cucumber.supportCodeLibraryBuilder.finalize();
 
     let eventDataCollector =

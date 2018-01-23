@@ -1,5 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
+var CleanWebpackPlugin = require('clean-webpack-plugin');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 let config = {
 	entry: {
@@ -29,6 +31,16 @@ let config = {
 			}
 		]
 	},
+	plugins: [
+ 		new CleanWebpackPlugin(['_build']),
+		new CopyWebpackPlugin([
+			{ from: path.resolve('LICENSE'), to: path.resolve('_build/') },
+			{ from: path.resolve('package.json'), to: path.resolve('_build/') },
+			{ from: path.resolve('README.md'), to: path.resolve('_build/') },
+			{ from: path.resolve('src/interface/cucumber.js'), to: path.resolve('_build/interface/') },
+			{ from: path.resolve('src/plugin.js'), to: path.resolve('_build/') }
+		])
+  	],
 	stats: {
 		assets: false,
 		entrypoints: true,

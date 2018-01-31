@@ -100,9 +100,8 @@ function _createEventBroadcaster(suite) {
             }
             subSuite = new Suite.default({ name: name });
             suite.add(subSuite);
-            subSuite.executor.emit('suiteStart', subSuite).then(() => {
-                subSuiteStart = Date.now();
-            });
+            subSuite.executor.emit('suiteStart', subSuite);
+            subSuiteStart = Date.now();
         } catch(e) {
             suite.error = e;
             console.log(e);
@@ -128,9 +127,8 @@ function _createEventBroadcaster(suite) {
             }
             test = new Test.default({ name, test: () => {} });
             subSuite.add(test);
-            test.executor.emit('testStart', test).then(() => {
-                testStart = Date.now();
-            });
+            test.executor.emit('testStart', test);
+            testStart = Date.now();
         } catch(e) {
             suite.error = e;
             console.log(e);

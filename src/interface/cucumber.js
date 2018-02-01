@@ -54,12 +54,12 @@ function _createSuite(name, featureSource, stepDefinitionInitializers) {
                         resolve();
                     }).catch((e) => {
                         suite.error = e;
-                        // reject(e);
-                        resolve();
+                        suite.executor.emit('error', e);
+                        reject(e);
                     });
                 } catch(e) {
                     suite.error = e;
-                    console.log(e);
+                    suite.executor.emit('error', e);
                     reject();
                 }
             });

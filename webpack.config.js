@@ -38,7 +38,8 @@ let config = {
 			{ from: path.resolve('package.json'), to: path.resolve('_build/') },
 			{ from: path.resolve('README.md'), to: path.resolve('_build/') },
 			{ from: path.resolve('src/interface/cucumber.js'), to: path.resolve('_build/interface/') },
-			{ from: path.resolve('src/plugin.js'), to: path.resolve('_build/') }
+			{ from: path.resolve('src/plugin.js'), to: path.resolve('_build/') },
+			{ from: path.resolve('src/plugin.d.ts'), to: path.resolve('_build/') }
 		])
   	],
 	stats: {

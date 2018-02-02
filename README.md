@@ -5,21 +5,24 @@ See https://theintern.io/docs.html#Intern/4 for details on how to start testing 
 
 ## Quickstart
 
+Install intern and intern-cucumber
+
+```npm install --save-dev intern intern-cucumber```
+
 Add the plugin to your `intern.json`:
 
 ```js
     "browser": {
         "plugins": {
-            "intern-cucumber/_build/browser/plugin.js"
+            "node_modules/intern-cucumber/browser/plugin.js"
         }
     }
     "node": {
         "plugins": {
-            "intern-cucumber/src/plugin.js"
+            "node_modules/intern-cucumber/plugin.js"
         }
     }
 ```
-(npm support coming soon)
 
 Load the interface and write tests:
 ```js
@@ -27,3 +30,5 @@ Load the interface and write tests:
 
     registerCucumber(<name>, <featureSource>, <support functions>);
 ```
+
+See https://github.com/rhpijnacker/intern-cucumber-examples for more examples

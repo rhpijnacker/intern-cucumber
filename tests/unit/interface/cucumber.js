@@ -159,6 +159,28 @@ registerSuite('interface/cucumber', function() {
                 });
             },
 
+            'in functional tests "remote" should be part of the World'() {
+                // Fake this.remote
+                rootSuite.remote = { fake: 'fake remote' };
+                cucumberInterface.default(
+                    '',
+                    'Feature: ...\nScenario: A scenario\nGiven x = 5',
+                    () => {
+                        cucumberInterface.Given(
+                            'x = 5',
+                            function() {
+                                assert.isDefined(this.remote, '"remote" should be part of the World');
+                                assert.deepEqual(this.remote, { fake: 'fake remote' });
+                            }
+                        );
+                    }
+                );
+                return rootSuite.run().then(() => {
+                    let suite = rootSuite.tests[0].tests[0];
+                    assert.isTrue(suite.tests[0].hasPassed, 'Test should have passed');
+                });
+            },
+
             'failing steps should give an error'() {
                 cucumberInterface.default(
                     'failing steps',

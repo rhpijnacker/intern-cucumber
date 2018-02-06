@@ -32,12 +32,12 @@ function _publishCucumberInterface(iface) {
 
 function _registerCucumber(executor, name, featureSource, stepDefinitionInitializers) {
     executor.addSuite(function(parent) {
-        let suite = _createSuite(name, featureSource, stepDefinitionInitializers);
+        let suite = _createSuite(name, featureSource, stepDefinitionInitializers, parent.remote);
         parent.add(suite);
     });
 }
 
-function _createSuite(name, featureSource, stepDefinitionInitializers) {
+function _createSuite(name, featureSource, stepDefinitionInitializers, remote) {
     let suite = new Suite.default({
         name,
         run: () => {
@@ -48,7 +48,8 @@ function _createSuite(name, featureSource, stepDefinitionInitializers) {
                         _createFeatureRunner(
                             featureSource,
                             stepDefinitionInitializers,
-                            eventBroadcaster
+                            eventBroadcaster,
+                            remote
                         );
                     featureRunner.start().then(() => {
                         resolve();
@@ -159,7 +160,7 @@ function _createEventBroadcaster(suite) {
     return eventBroadcaster;
 }
 
-function _createFeatureRunner(featureSource, stepDefinitionInitializers, eventBroadcaster) {
+function _createFeatureRunner(featureSource, stepDefinitionInitializers, eventBroadcaster, remote) {
     let testCases = cucumber.getTestCases({
         eventBroadcaster,
         pickleFilter: new cucumber.PickleFilter({}),
@@ -168,6 +169,13 @@ function _createFeatureRunner(featureSource, stepDefinitionInitializers, eventBr
     });
 
     cucumber.supportCodeLibraryBuilder.reset('/');
+    if (remote) {
+        let World = function World() {
+            // Add 'remote' for functional tests
+            this.remote = remote;
+        }
+        cucumber.setWorldConstructor(World)
+    }
     stepDefinitionInitializers.forEach((initializer) => {
         // Pass the cucumber as the `this' context to every step definition function
         // for backward compatibility with the intern 3 cucumber integration.

@@ -56,6 +56,29 @@ registerSuite('interface/cucumber', function() {
                 assert.isFunction(interface.registerCucumber);
             },
 
+            'cucumberInterface should expose the cucumber methods'() {
+                assert.isFunction(cucumberInterface.After);
+                assert.isFunction(cucumberInterface.AfterAll);
+                assert.isFunction(cucumberInterface.Before);
+                assert.isFunction(cucumberInterface.BeforeAll);
+                assert.isFunction(cucumberInterface.Given);
+                assert.isFunction(cucumberInterface.Then);
+                assert.isFunction(cucumberInterface.When);
+                assert.isFunction(cucumberInterface.setWorldConstructor);
+            },
+
+            'cucumberInterface.getInterface() should expose the cucumber methods'() {
+                const interface = cucumberInterface.getInterface(executor);
+                assert.isFunction(interface.After);
+                assert.isFunction(interface.AfterAll);
+                assert.isFunction(interface.Before);
+                assert.isFunction(interface.BeforeAll);
+                assert.isFunction(interface.Given);
+                assert.isFunction(interface.Then);
+                assert.isFunction(interface.When);
+                assert.isFunction(interface.setWorldConstructor);
+            },
+
             'registerCucumber should add a suite'() {
                 const interface = cucumberInterface.getInterface(executor);
                 interface.registerCucumber('dummy', 'Feature: ...');

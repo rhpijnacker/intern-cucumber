@@ -25,9 +25,14 @@ exports.getInterface = getInterface;
 _publishCucumberInterface(exports);
 
 function _publishCucumberInterface(iface) {
+    iface.After = cucumber.After;
+    iface.AfterAll = cucumber.AfterAll;
+    iface.Before = cucumber.Before;
+    iface.BeforeAll = cucumber.BeforeAll;
     iface.Given = cucumber.Given;
     iface.Then = cucumber.Then;
     iface.When = cucumber.When;
+    iface.setWorldConstructor = cucumber.setWorldConstructor;
 }
 
 function _registerCucumber(executor, name, featureSource, stepDefinitionInitializers) {

@@ -37,12 +37,12 @@ function _publishCucumberInterface(iface) {
 
 function _registerCucumber(executor, name, featureSource, stepDefinitionInitializers) {
     executor.addSuite(function(parent) {
-        let suite = _createSuite(name, featureSource, stepDefinitionInitializers, parent.remote);
+        let suite = _createSuite(name, featureSource, stepDefinitionInitializers);
         parent.add(suite);
     });
 }
 
-function _createSuite(name, featureSource, stepDefinitionInitializers, remote) {
+function _createSuite(name, featureSource, stepDefinitionInitializers) {
     let suite = new Suite.default({
         name,
         run: () => {
@@ -54,7 +54,7 @@ function _createSuite(name, featureSource, stepDefinitionInitializers, remote) {
                             featureSource,
                             stepDefinitionInitializers,
                             eventBroadcaster,
-                            remote
+                            suite
                         );
                     featureRunner.start().then(() => {
                         resolve();
@@ -167,7 +167,7 @@ function _createEventBroadcaster(suite) {
     return eventBroadcaster;
 }
 
-function _createFeatureRunner(featureSource, stepDefinitionInitializers, eventBroadcaster, remote) {
+function _createFeatureRunner(featureSource, stepDefinitionInitializers, eventBroadcaster, suite) {
     let testCases = cucumber.getTestCases({
         eventBroadcaster,
         pickleFilter: new cucumber.PickleFilter({}),
@@ -176,13 +176,13 @@ function _createFeatureRunner(featureSource, stepDefinitionInitializers, eventBr
     });
 
     cucumber.supportCodeLibraryBuilder.reset('/');
-    if (remote) {
-        let World = function World() {
+    function World() {
+        if (suite.remote) {
             // Add 'remote' for functional tests
-            this.remote = remote;
+            this.remote = suite.remote;
         }
-        cucumber.setWorldConstructor(World)
     }
+    cucumber.setWorldConstructor(World);
     stepDefinitionInitializers.forEach((initializer) => {
         // Pass the cucumber as the `this' context to every step definition function
         // for backward compatibility with the intern 3 cucumber integration.

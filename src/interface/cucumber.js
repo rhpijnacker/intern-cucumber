@@ -123,31 +123,14 @@ function _createEventBroadcaster(suite) {
         // console.log('test-step-attachment event:', event);
     });
     eventBroadcaster.on('test-step-started', (event) => {
-        console.log('test-step-started event:', event);
-        // try {
-        //     let data = eventDataCollector.getTestStepData(event);
-        //     let name = `${data.gherkinKeyword}${data.pickleStep.text}`
-        //     let isReused = used.test[name];
-        //     used.test[name] = (used.test[name] || 0) + 1;
-        //     if (isReused) {
-        //         name = `${name} (${used.test[name]})`;
-        //     }
-        //     test = new Test.default({ name, test: () => {} });
-        //     subSuite.add(test);
-        //     test.executor.emit('testStart', test).then(() => {
-        //         testStart = Date.now();
-        //     });
-        // } catch(e) {
-        //     suite.error = e;
-        //     console.log(e);
-        // }
+        // console.log('test-step-started event:', event);
     });
     eventBroadcaster.on('test-step-finished', (event) => {
-        console.log('test-step-finished: event', event);
+        // console.log('test-step-finished: event', event);
         try {
             if (test.hasPassed) {
                 let data = eventDataCollector.getTestStepData(event);
-                let step = `${data.gherkinKeyword}${data.pickleStep.text}`
+                let step = `${data.gherkinKeyword}${data.pickleStep && data.pickleStep.text}`
                 test._hasPassed = event.result.status === cucumber.Status.PASSED;
                 if (event.result.status === cucumber.Status.FAILED) {
                     let exception = event.result.exception;

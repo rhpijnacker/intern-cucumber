@@ -77,11 +77,11 @@ function _createSuite(name, featureSource, stepDefinitionInitializers, remote) {
 function _createEventBroadcaster(suite) {
     let eventBroadcaster = new events.EventEmitter();
     let eventDataCollector = new cucumber.formatterHelpers.EventDataCollector(eventBroadcaster);
-    let subSuite, test, used;
-    let suiteStart, subSuiteStart, testStart;
+    let test, used;
+    let suiteStart, testStart;
 
     eventBroadcaster.on('test-run-started', () => {
-        used = { suite: {}, test: {} }; // reset used suite/test names
+        used = { test: {} }; // reset used test names
         suite.executor.emit('suiteStart', suite).then(() => {
             suiteStart = Date.now();
         });
@@ -96,44 +96,15 @@ function _createEventBroadcaster(suite) {
     });
     eventBroadcaster.on('test-case-started', (event) => {
         try {
-            used.test = {}; // reset used test names
             let data = eventDataCollector.getTestCaseData(event.sourceLocation);
             let name = data.pickle.name;
-            let isReused = used.suite[name];
-            used.suite[name] = (used.suite[name] || 0) + 1;
-            if (isReused) {
-                name = `${name} (${used.suite[name]})`;
-            }
-            subSuite = new Suite.default({ name: name });
-            suite.add(subSuite);
-            subSuite.executor.emit('suiteStart', subSuite).then(() => {
-                subSuiteStart = Date.now();
-            });
-        } catch(e) {
-            suite.error = e;
-            console.log(e);
-        }
-    });
-    eventBroadcaster.on('test-case-finished', () => {
-        subSuite.timeElapsed = Date.now() - subSuiteStart;
-        subSuite.executor.emit('suiteEnd', subSuite);
-        subSuite = null;
-    });
-
-    eventBroadcaster.on('test-step-attachment', (event) => {
-        // console.log('test-step-attachment event:', event);
-    });
-    eventBroadcaster.on('test-step-started', (event) => {
-        try {
-            let data = eventDataCollector.getTestStepData(event);
-            let name = `${data.gherkinKeyword}${data.pickleStep.text}`
             let isReused = used.test[name];
             used.test[name] = (used.test[name] || 0) + 1;
             if (isReused) {
                 name = `${name} (${used.test[name]})`;
             }
-            test = new Test.default({ name, test: () => {} });
-            subSuite.add(test);
+            test = new Test.default({ name, test: () => {}, hasPassed: true });
+            suite.add(test);
             test.executor.emit('testStart', test).then(() => {
                 testStart = Date.now();
             });
@@ -142,21 +113,52 @@ function _createEventBroadcaster(suite) {
             console.log(e);
         }
     });
+    eventBroadcaster.on('test-case-finished', () => {
+        test._timeElapsed = Date.now() - testStart;
+        test.executor.emit('testEnd', test);
+        test = null;
+    });
+
+    eventBroadcaster.on('test-step-attachment', (event) => {
+        // console.log('test-step-attachment event:', event);
+    });
+    eventBroadcaster.on('test-step-started', (event) => {
+        console.log('test-step-started event:', event);
+        // try {
+        //     let data = eventDataCollector.getTestStepData(event);
+        //     let name = `${data.gherkinKeyword}${data.pickleStep.text}`
+        //     let isReused = used.test[name];
+        //     used.test[name] = (used.test[name] || 0) + 1;
+        //     if (isReused) {
+        //         name = `${name} (${used.test[name]})`;
+        //     }
+        //     test = new Test.default({ name, test: () => {} });
+        //     subSuite.add(test);
+        //     test.executor.emit('testStart', test).then(() => {
+        //         testStart = Date.now();
+        //     });
+        // } catch(e) {
+        //     suite.error = e;
+        //     console.log(e);
+        // }
+    });
     eventBroadcaster.on('test-step-finished', (event) => {
+        console.log('test-step-finished: event', event);
         try {
-            test._timeElapsed = Date.now() - testStart;
-            test._hasPassed = event.result.status === cucumber.Status.PASSED;
-            if (event.result.status === cucumber.Status.FAILED) {
-                let exception = event.result.exception;
-                let message = `"${test.name}" failed:\n${exception.message}`;
-                test.error = new Error(message);
-            } else if (event.result.status == cucumber.Status.UNDEFINED) {
-                let execption = event.result.exception;
-                let message = `"${test.name}" does not have a matching step definition`;
-                test.error = new Error(message);
+            if (test.hasPassed) {
+                let data = eventDataCollector.getTestStepData(event);
+                let step = `${data.gherkinKeyword}${data.pickleStep.text}`
+                test._hasPassed = event.result.status === cucumber.Status.PASSED;
+                if (event.result.status === cucumber.Status.FAILED) {
+                    let exception = event.result.exception;
+                    let message = `"${step}" failed:\n${exception.message}`;
+                    test.error = new Error(message);
+                } else if (event.result.status == cucumber.Status.UNDEFINED) {
+                    let execption = event.result.exception;
+                    let message = `"${step}" does not have a matching step definition`;
+                    test.error = new Error(message);
+                }
             }
-            test.executor.emit('testEnd', test);
-            test = null;
         } catch(e) { 
             suite.error = e;
             console.log(e);

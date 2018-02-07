@@ -105,19 +105,16 @@ registerSuite('interface/cucumber', function() {
                 );
                 return rootSuite.run().then(() => {
                     let suite = rootSuite.tests[0];
-                    assert.lengthOf(suite.tests, 1, 'Suite should have one sub-suite');
-                    assert.instanceOf(suite.tests[0], Suite.default, 'Sub-suite should be a suite instance');
-                    
-                    let subSuite = suite.tests[0];
-                    assert.equal(subSuite.name, 'A scenario', 'Sub-suite should have the right name');
-                    assert.equal(subSuite.numTests, 1, 'numTests should be 1');
-                    assert.equal(subSuite.numFailedTests, 0, 'numFailedTests should be 0');
-                    assert.lengthOf(subSuite.tests, 1, 'Sub-suite should have one test');
-                    assert.instanceOf(subSuite.tests[0], Test.default, 'Test 1 should be a test instance');
+                    assert.instanceOf(suite, Suite.default, 'Sub-suite should be a suite instance');
+                    assert.lengthOf(suite.tests, 1, 'Sub-suite should have one test');
 
-                    let test = subSuite.tests[0];
-                    assert.equal(test.name, 'Given x = 5', 'Test 1 should have the right name');
-                    assert.isTrue(test.hasPassed, 'Test 1 should have passed');
+                    let test = suite.tests[0];
+                    assert.instanceOf(test, Test.default, 'Test should be a test instance');
+                    assert.equal(test.name, 'A scenario', 'Test should have the right name');
+                    assert.isTrue(test.hasPassed, 'Test should have passed');
+                    assert.equal(suite.numTests, 1, 'numTests should be 1');
+                    assert.equal(suite.numFailedTests, 0, 'numFailedTests should be 0');
+                    assert.equal(suite.numPassedTests, 1, 'numPassedTests should be 1');
                 });
             },
 
@@ -128,25 +125,19 @@ registerSuite('interface/cucumber', function() {
                     () => { cucumberInterface.Given('x = {int}', function(value) {}); }
                 );
                 return rootSuite.run().then(() => {
-                    let parentSuite = rootSuite.tests[0];
-                    assert.lengthOf(parentSuite.tests, 3, 'Parent suite 1 should have three sub-suites');
-                    parentSuite.tests.forEach((subSuite) => {
-                        assert.instanceOf(subSuite, Suite.default, 'Sub-suite should be a suite instance');
-                        assert.lengthOf(subSuite.tests, 1, 'Sub-suite should have one test');
-                        let test = subSuite.tests[0];
+                    let suite = rootSuite.tests[0];
+                    assert.lengthOf(suite.tests, 3, 'Sub-suite should have three tests');
+                    suite.tests.forEach((test) => {
                         assert.instanceOf(test, Test.default, 'Test should be a test instance');
                         assert.isTrue(test.hasPassed, 'Test should have passed');
                     });
-                    assert.equal(parentSuite.tests[0].name, 'A scenario with examples', 'Sub-suite should have the right name');
-                    assert.equal(parentSuite.tests[1].name, 'A scenario with examples (2)', 'Sub-suite should have the right name');
-                    assert.equal(parentSuite.tests[2].name, 'A scenario with examples (3)', 'Sub-suite should have the right name');
+                    assert.equal(suite.tests[0].name, 'A scenario with examples', 'Test 1 should have the right name');
+                    assert.equal(suite.tests[1].name, 'A scenario with examples (2)', 'Test 2 should have the right name');
+                    assert.equal(suite.tests[2].name, 'A scenario with examples (3)', 'Test 3 should have the right name');
 
-                    assert.equal(parentSuite.tests[0].tests[0].name, 'Given x = 1', 'Test 1 should have the right name');
-                    assert.equal(parentSuite.tests[1].tests[0].name, 'Given x = 2', 'Test 2 should have the right name');
-                    assert.equal(parentSuite.tests[2].tests[0].name, 'Given x = 3', 'Test 3 should have the right name');
-
-                    assert.equal(parentSuite.numTests, 3, 'numTests shoud be 3');
-                    assert.equal(parentSuite.numFailedTests, 0, 'numFailedTests should be 0');
+                    assert.equal(suite.numTests, 3, 'numTests shoud be 3');
+                    assert.equal(suite.numFailedTests, 0, 'numFailedTests should be 0');
+                    assert.equal(suite.numPassedTests, 3, 'numPassedTests should be 3');
                 });
             },
 
@@ -157,14 +148,11 @@ registerSuite('interface/cucumber', function() {
                     () => { cucumberInterface.Given('x = 5', () => {}); }
                 );
                 return rootSuite.run().then(() => {
-                    let subSuite = rootSuite.tests[0].tests[0];
-                    assert.lengthOf(subSuite.tests, 3, 'Sub-suite should have three tests');
-                    assert.equal(subSuite.tests[0].name, 'Given x = 5', 'Test 1 should have the right name');
-                    assert.equal(subSuite.tests[1].name, 'And x = 5', 'Test 2 should have the right name');
-                    assert.equal(subSuite.tests[2].name, 'And x = 5 (2)', 'Test 2 should have the right name');
-
-                    assert.equal(subSuite.numTests, 3, 'numTests should be 3');
-                    assert.equal(subSuite.numFailedTests, 0, 'numFailedTests should be 0');
+                    let suite = rootSuite.tests[0];
+                    assert.lengthOf(suite.tests, 1, 'Sub-suite should have one test');
+                    assert.equal(suite.numTests, 1, 'numTests should be 1');
+                    let test = suite.tests[0];
+                    assert.isTrue(test.hasPassed, 'Test should have passed');
                 });
             },
 
@@ -176,7 +164,7 @@ registerSuite('interface/cucumber', function() {
                     () => { cucumberInterface.Then('x == 5', () => {}); }
                 );
                 return rootSuite.run().then(() => {
-                    let suite = rootSuite.tests[0].tests[0];
+                    let suite = rootSuite.tests[0];
                     let test = suite.tests[0];
                     assert.isTrue(test.hasPassed, 'Test should have passed');
                 });
@@ -191,7 +179,7 @@ registerSuite('interface/cucumber', function() {
                     () => {
                         cucumberInterface.Given(
                             'x = 5',
-                            function() {
+                            function() { // Note: using `function` is important here!
                                 assert.isDefined(this.remote, '"remote" should be part of the World');
                                 assert.deepEqual(this.remote, { fake: 'fake remote' });
                             }
@@ -199,8 +187,9 @@ registerSuite('interface/cucumber', function() {
                     }
                 );
                 return rootSuite.run().then(() => {
-                    let suite = rootSuite.tests[0].tests[0];
-                    assert.isTrue(suite.tests[0].hasPassed, 'Test should have passed');
+                    let suite = rootSuite.tests[0];
+                    let test = suite.tests[0];
+                    assert.isTrue(test.hasPassed, 'Test should have passed');
                 });
             },
 
@@ -214,14 +203,15 @@ registerSuite('interface/cucumber', function() {
                     }
                 );
                 return rootSuite.run().then(() => {
-                    let test = rootSuite.tests[0].tests[0].tests[1];
+                    let suite = rootSuite.tests[0];
+                    let test = suite.tests[0];
                     assert.isFalse(test.hasPassed, 'Test should not have passed');
                     assert.equal(
                         test.error.message,
                         '"And y = 5" failed:\nThis fails: expected false to be truthy',
                         'Test should have the right error message'
                     );
-                    assert.equal(rootSuite.tests[0].tests[0].numFailedTests, 1, 'numFailedTests should be 1');
+                    assert.equal(suite.numFailedTests, 1, 'numFailedTests should be 1');
                 });
             },
 
@@ -232,14 +222,15 @@ registerSuite('interface/cucumber', function() {
                     () => {}
                 );
                 return rootSuite.run().then(() => {
-                    let test = rootSuite.tests[0].tests[0].tests[0];
+                    let suite = rootSuite.tests[0];
+                    let test = suite.tests[0];
                     assert.isFalse(test.hasPassed, 'Test should not have passed');
                     assert.equal(
                         test.error.message,
                         '"Given x = 5" does not have a matching step definition',
                         'Test should have the right error message'
                     );
-                    assert.equal(rootSuite.tests[0].tests[0].numFailedTests, 1, 'numFailedTests should be 1');
+                    assert.equal(suite.numFailedTests, 1, 'numFailedTests should be 1');
                 });
             },
 
@@ -247,8 +238,9 @@ registerSuite('interface/cucumber', function() {
                 this.skip('skipped until exception is fixed');
                 cucumberInterface.default('garbage', '... garbage in ...', () => {});
                 return rootSuite.run().then(() => {
-                    assert.lengthOf(rootSuite.tests[0].tests, 0, 'Suite should have no sub-suite/tests');
-                    assert.isDefined(rootSuite.tests[0].error, 'Suite should have an error');
+                    let suite = rootSuite.tests[0];
+                    assert.lengthOf(suite.tests, 0, 'Sub-suite should have no tests');
+                    assert.isDefined(suite.error, 'Sub-suite should have an error');
                 });
             }
 

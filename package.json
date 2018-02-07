@@ -1,6 +1,6 @@
 {
   "name": "intern-cucumber",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "cucumber-js interface for intern",
   "main": "plugin.js",
   "types": "plugin.d.ts",

@@ -38,6 +38,6 @@
     "intern": "~4.1.5"
   },
   "dependencies": {
-    "cucumber": "^3.2.1"
+    "cucumber": "^4.0.0"
   }
 }

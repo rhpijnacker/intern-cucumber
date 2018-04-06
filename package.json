@@ -1,6 +1,6 @@
 {
   "name": "intern-cucumber",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "cucumber-js interface for intern",
   "main": "plugin.js",
   "types": "plugin.d.ts",
@@ -25,6 +25,7 @@
   "homepage": "https://github.com/rhpijnacker/intern-cucumber#readme",
   "devDependencies": {
     "babel-core": "^6.26.0",
+    "babel-engine-plugin": "^0.2.1",
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.1",
     "clean-webpack-plugin": "^0.1.17",

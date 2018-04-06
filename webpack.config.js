@@ -1,7 +1,8 @@
 const path = require('path');
 const webpack = require('webpack');
-var CleanWebpackPlugin = require('clean-webpack-plugin');
-var CopyWebpackPlugin = require('copy-webpack-plugin');
+const BabelEnginePlugin = require('babel-engine-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 let config = {
 	entry: {
@@ -25,13 +26,18 @@ let config = {
 				use: {
 					loader: 'babel-loader',
 					options: {
-						presets: ['babel-preset-env']
+						presets: [
+							['babel-preset-env', { targets: { browsers: ['ie >= 11', 'safari >= 10'] } }]
+						]
 					}
 				}
 			}
 		]
 	},
 	plugins: [
+		new BabelEnginePlugin({
+			presets: [['env', { targets: { browsers: ['ie >= 11', 'safari >= 10'] } }]],
+		}),
  		new CleanWebpackPlugin(['_build']),
 		new CopyWebpackPlugin([
 			{ from: path.resolve('LICENSE'), to: path.resolve('_build/') },

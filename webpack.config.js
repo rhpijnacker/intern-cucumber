@@ -44,7 +44,7 @@ let config = {
       ]
     }),
     new CleanWebpackPlugin({
-      cleanOnceBeforeBuildPatterns: [path.join(process.cwd(), '_build')]
+      cleanOnceBeforeBuildPatterns: [path.resolve('_build')]
     }),
     new CopyWebpackPlugin([
       { from: path.resolve('LICENSE'), to: path.resolve('_build/') },

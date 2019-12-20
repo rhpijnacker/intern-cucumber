@@ -39,6 +39,6 @@
     "intern": "~4.7.1"
   },
   "dependencies": {
-    "cucumber": "^4.2.1"
+    "cucumber": "^5.1.0"
   }
 }

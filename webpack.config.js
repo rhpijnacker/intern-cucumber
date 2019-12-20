@@ -1,6 +1,5 @@
 const path = require('path');
 const webpack = require('webpack');
-const BabelEnginePlugin = require('babel-engine-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
@@ -28,7 +27,7 @@ let config = {
           options: {
             presets: [
               [
-                'babel-preset-env',
+                '@babel/preset-env',
                 { targets: { browsers: ['ie >= 11', 'safari >= 10'] } }
               ]
             ]
@@ -38,11 +37,6 @@ let config = {
     ]
   },
   plugins: [
-    new BabelEnginePlugin({
-      presets: [
-        ['env', { targets: { browsers: ['ie >= 11', 'safari >= 10'] } }]
-      ]
-    }),
     new CleanWebpackPlugin({
       cleanOnceBeforeBuildPatterns: [path.resolve('_build')]
     }),

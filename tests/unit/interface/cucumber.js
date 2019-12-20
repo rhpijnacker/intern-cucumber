@@ -9,16 +9,15 @@ const mockRequire = intern.getPlugin('mockRequire');
 
 registerSuite('interface/cucumber', function() {
   let cucumberInterface, removeMocks, rootSuite;
-  let sandbox = sinon.sandbox.create();
   const executor = {
-    addSuite: sandbox.spy(function(callback) {
+    addSuite: sinon.spy(function(callback) {
       callback(rootSuite);
     }),
-    emit: sandbox.spy(function() {
+    emit: sinon.spy(function() {
       return Task.resolve();
     })
   };
-  const getIntern = sandbox.spy(function() {
+  const getIntern = sinon.spy(function() {
     return executor;
   });
   const mockGlobal = {
@@ -41,7 +40,7 @@ registerSuite('interface/cucumber', function() {
     },
 
     beforeEach: function() {
-      sandbox.resetHistory();
+      sinon.reset();
       rootSuite = new Suite.default({ name: 'root', executor: executor });
     },
 

@@ -1,3 +1,3 @@
-const getInterface = require('./interface/cucumber').getInterface; 
+const { getInterface } = require('./interface/cucumber');
 
 intern.registerInterface('cucumber', getInterface(intern));

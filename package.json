@@ -5,7 +5,7 @@
   "main": "plugin.js",
   "types": "plugin.d.ts",
   "scripts": {
-    "build": "webpack --mode production",
+    "build": "webpack --mode production && babel _tmp/browser/plugin.js -o _build/browser/plugin.js",
     "test": "NODE_PATH=. intern"
   },
   "repository": {
@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/rhpijnacker/intern-cucumber#readme",
   "devDependencies": {
+    "@babel/cli": "^7.7.7",
     "@babel/core": "^7.7.7",
     "@babel/preset-env": "^7.7.7",
     "babel-loader": "^8.0.6",

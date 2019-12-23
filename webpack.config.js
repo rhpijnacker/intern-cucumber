@@ -9,7 +9,7 @@ let config = {
   },
   output: {
     filename: '[name].js',
-    path: path.join(__dirname, '_build/browser')
+    path: path.join(__dirname, '_tmp/browser')
   },
   devtool: 'source-map',
   module: {
@@ -18,27 +18,15 @@ let config = {
         test: /\.js$/,
         include: /node_modules/,
         use: 'umd-compat-loader'
-      },
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: [
-              [
-                '@babel/preset-env',
-                { targets: { browsers: ['ie >= 11', 'safari >= 10'] } }
-              ]
-            ]
-          }
-        }
       }
     ]
   },
   plugins: [
     new CleanWebpackPlugin({
-      cleanOnceBeforeBuildPatterns: [path.resolve('_build')]
+      cleanOnceBeforeBuildPatterns: [
+        path.resolve('_build'),
+        path.resolve('_tmp')
+      ]
     }),
     new CopyWebpackPlugin([
       { from: path.resolve('LICENSE'), to: path.resolve('_build/') },
@@ -59,7 +47,7 @@ let config = {
     hash: false,
     modules: false,
     version: false,
-    warnings: true
+    warnings: false
   },
   resolve: {
     alias: {
@@ -68,10 +56,4 @@ let config = {
     extensions: ['.ts', '.js']
   }
 };
-if (
-  process.env['NODE_ENV'] === 'production' ||
-  process.env['INTERN_BUILD'] === 'release'
-) {
-  config.plugins = [new webpack.optimize.UglifyJsPlugin()];
-}
 module.exports = config;

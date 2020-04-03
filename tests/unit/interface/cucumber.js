@@ -291,6 +291,30 @@ registerSuite('interface/cucumber', function() {
         });
       },
 
+      'duplicate steps should give an error'() {
+        cucumberInterface.default(
+          'duplicate step definition',
+          'Feature: ...\nScenario: A failing test step\nGiven x = 5',
+          () => {
+            cucumberInterface.Given('x = 5', () => {});
+          },
+          () => {
+            cucumberInterface.Then('x = 5', () => {});
+          }
+        );
+        return rootSuite.run().then(() => {
+          let suite = rootSuite.tests[0];
+          let test = suite.tests[0];
+          assert.isFalse(test.hasPassed, 'Test should not have passed');
+          assert.equal(
+            test.error.message.substring(0, 40),
+            'Multiple step definitions match:\n  x = 5',
+            'Test should have the right error message'
+          );
+          assert.equal(suite.numFailedTests, 1, 'numFailedTests should be 1');
+        });
+      },
+
       'missing Given step definition should give an error'() {
         cucumberInterface.default(
           'missing step definition',

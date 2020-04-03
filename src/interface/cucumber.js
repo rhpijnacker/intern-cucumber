@@ -96,6 +96,9 @@ class CucumberSuite extends Suite.default {
             let message = `"${step}" failed:\n${exception.message}`;
             test.error = new Error(message);
             test.error.stack = exception.stack;
+          } else if (event.result.status == cucumber.Status.AMBIGUOUS) {
+            let message = event.result.exception;
+            test.error = new Error(message);
           } else if (event.result.status == cucumber.Status.UNDEFINED) {
             let message = `"${step}" does not have a matching step definition`;
             test.error = new Error(message);

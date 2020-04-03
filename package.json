@@ -6,7 +6,7 @@
   "types": "plugin.d.ts",
   "scripts": {
     "build": "webpack --mode production && babel _tmp/browser/plugin.js -o _build/browser/plugin.js",
-    "test": "NODE_PATH=. intern"
+    "test": "cross-env NODE_PATH=. intern"
   },
   "repository": {
     "type": "git",
@@ -30,6 +30,7 @@
     "babel-loader": "^8.0.6",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^4.6.0",
+    "cross-env": "^7.0.2",
     "intern": "^4.8.1",
     "sinon": "^7.5.0",
     "umd-compat-loader": "^2.1.2",

@@ -185,5 +185,8 @@ function getInterface(executor) {
 
 let globalInterface = getInterface(global.intern);
 globalInterface.default = globalInterface.registerCucumber;
-globalInterface.getInterface = getInterface;
-module.exports = globalInterface;
+globalInterface.getInterface = function(...args) {
+  let iface = getInterface(...args);
+  return Object.freeze(iface);
+}
+module.exports = Object.freeze(globalInterface);

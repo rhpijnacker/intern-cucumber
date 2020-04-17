@@ -38,9 +38,8 @@ class CucumberSuite extends Suite.default {
 
     this.eventBroadcaster.on('test-run-started', () => {
       used = { test: {} }; // reset used test names
-      this.executor.emit('suiteStart', this).then(() => {
-        suiteStart = Date.now();
-      });
+      suiteStart = Date.now();
+      this.executor.emit('suiteStart', this);
     });
     this.eventBroadcaster.on('test-run-finished', () => {
       this.timeElapsed = Date.now() - suiteStart;
@@ -63,9 +62,8 @@ class CucumberSuite extends Suite.default {
         }
         test = new Test.default({ name, test: () => {}, hasPassed: true });
         this.add(test);
-        test.executor.emit('testStart', test).then(() => {
-          testStart = Date.now();
-        });
+        testStart = Date.now();
+        test.executor.emit('testStart', test);
       } catch (e) {
         this.error = e;
         console.log(e);
@@ -88,8 +86,9 @@ class CucumberSuite extends Suite.default {
       try {
         if (test.hasPassed) {
           let data = this.eventDataCollector.getTestStepData(event);
-          let step = `${data.gherkinKeyword}${data.pickleStep &&
-            data.pickleStep.text}`;
+          let step = `${data.gherkinKeyword}${
+            data.pickleStep && data.pickleStep.text
+          }`;
           test._hasPassed = event.result.status === cucumber.Status.PASSED;
           if (event.result.status === cucumber.Status.FAILED) {
             let exception = event.result.exception;

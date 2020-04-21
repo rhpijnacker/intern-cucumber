@@ -7,23 +7,73 @@ const events = require('events');
 class CucumberSuite extends Suite.default {
   run() {
     return new Task((resolve, reject) => {
-      try {
-        this._createEventBroadcaster();
-        this._createFeatureRunner();
-        this.featureRunner
-          .start()
-          .then(() => {
-            resolve();
-          })
-          .catch(e => {
-            this.error = e;
-            this.executor.emit('error', e);
-            reject(e);
+      let suiteStart;
+
+      const startSuite = () => {
+        return this.executor.emit('suiteStart', this).then(() => {
+          this.eventBroadcaster.emit('test-run-started');
+          suiteStart = Date.now();
+        });
+      };
+
+      const endSuite = () => {
+        this.timeElapsed = Date.now() - suiteStart;
+        return this.executor.emit('suiteEnd', this).then(() => {
+          this.eventBroadcaster.emit('test-run-finished', {
+            result: this.featureRunner.result,
           });
-      } catch (e) {
+        });
+      };
+
+      const runBeforeAll = () =>
+        this.featureRunner.runTestRunHooks(
+          'beforeTestRunHookDefinitions',
+          'a BeforeAll'
+        );
+
+      const runAfterAll = () =>
+        this.featureRunner.runTestRunHooks(
+          'afterTestRunHookDefinitions',
+          'an AfterAll'
+        );
+
+      const runTests = () =>
+        this.featureRunner.testCases.reduce(
+          (previousPromise, testCase) =>
+            previousPromise.then(
+              () =>
+                new Promise((resolve, reject) =>
+                  setTimeout(
+                    () =>
+                      this.featureRunner
+                        .runTestCase(testCase)
+                        .then(resolve)
+                        .catch(reject),
+                    0
+                  )
+                )
+            ),
+          Promise.resolve()
+        );
+
+      const handleError = (e) => {
         this.error = e;
         this.executor.emit('error', e);
-        reject();
+        reject(e);
+      };
+
+      try {
+        this._createEventBroadcaster();
+        this._createFeatureRunner()
+          .then(startSuite)
+          .then(runBeforeAll)
+          .then(runTests)
+          .then(runAfterAll)
+          .then(endSuite)
+          .then(resolve)
+          .catch(handleError);
+      } catch (e) {
+        handleError(e);
       }
     });
   }
@@ -38,18 +88,9 @@ class CucumberSuite extends Suite.default {
 
     this.eventBroadcaster.on('test-run-started', () => {
       used = { test: {} }; // reset used test names
-      suiteStart = Date.now();
-      this.executor.emit('suiteStart', this);
-    });
-    this.eventBroadcaster.on('test-run-finished', () => {
-      this.timeElapsed = Date.now() - suiteStart;
-      this.executor.emit('suiteEnd', this);
     });
 
-    this.eventBroadcaster.on('test-case-prepared', event => {
-      // console.log('test-case-prepared event:', event);
-    });
-    this.eventBroadcaster.on('test-case-started', event => {
+    this.eventBroadcaster.on('test-case-started', (event) => {
       try {
         let data = this.eventDataCollector.getTestCaseData(
           event.sourceLocation
@@ -69,20 +110,14 @@ class CucumberSuite extends Suite.default {
         console.log(e);
       }
     });
+
     this.eventBroadcaster.on('test-case-finished', () => {
       test._timeElapsed = Date.now() - testStart;
       test.executor.emit('testEnd', test);
       test = null;
     });
 
-    this.eventBroadcaster.on('test-step-attachment', event => {
-      // console.log('test-step-attachment event:', event);
-    });
-    this.eventBroadcaster.on('test-step-started', event => {
-      // console.log('test-step-started event:', event);
-    });
-    this.eventBroadcaster.on('test-step-finished', event => {
-      // console.log('test-step-finished: event', event);
+    this.eventBroadcaster.on('test-step-finished', (event) => {
       try {
         if (test.hasPassed) {
           let data = this.eventDataCollector.getTestStepData(event);
@@ -111,41 +146,43 @@ class CucumberSuite extends Suite.default {
   }
 
   _createFeatureRunner() {
-    let testCases = cucumber.getTestCases({
-      eventBroadcaster: this.eventBroadcaster,
-      pickleFilter: new cucumber.PickleFilter({}),
-      source: this.featureSource,
-      uri: '/feature'
-    });
-
-    cucumber.supportCodeLibraryBuilder.reset('/');
-    let _suite = this;
-    function World() {
-      if (_suite.remote) {
-        // Add 'remote' for functional tests
-        this.remote = _suite.remote;
-      }
-    }
-    cucumber.setWorldConstructor(World);
-    this.stepDefinitionInitializers.forEach(initializer => {
-      // Pass the cucumber as the `this' context to every step definition function
-      // for backward compatibility with the intern 3 cucumber integration.
-      initializer.call(cucumber);
-    });
-    let supportCodeLibrary = cucumber.supportCodeLibraryBuilder.finalize();
-    let formatterOptions = {
-      cwd: '/',
-      eventBroadcaster: this.eventBroadcaster,
-      eventDataCollector: this.eventDataCollector,
-      log: () => {},
-      supportCodeLibrary
-    };
-    cucumber.FormatterBuilder.build('progress', formatterOptions);
-    this.featureRunner = new cucumber.Runtime({
-      eventBroadcaster: this.eventBroadcaster,
-      testCases,
-      supportCodeLibrary
-    });
+    return cucumber
+      .getTestCases({
+        eventBroadcaster: this.eventBroadcaster,
+        pickleFilter: new cucumber.PickleFilter({}),
+        source: this.featureSource,
+        uri: '/feature',
+      })
+      .then((testCases) => {
+        cucumber.supportCodeLibraryBuilder.reset('/');
+        let _suite = this;
+        function World() {
+          if (_suite.remote) {
+            // Add 'remote' for functional tests
+            this.remote = _suite.remote;
+          }
+        }
+        cucumber.setWorldConstructor(World);
+        this.stepDefinitionInitializers.forEach((initializer) => {
+          // Pass the cucumber as the `this' context to every step definition function
+          // for backward compatibility with the intern 3 cucumber integration.
+          initializer.call(cucumber);
+        });
+        let supportCodeLibrary = cucumber.supportCodeLibraryBuilder.finalize();
+        let formatterOptions = {
+          cwd: '/',
+          eventBroadcaster: this.eventBroadcaster,
+          eventDataCollector: this.eventDataCollector,
+          log: () => {},
+          supportCodeLibrary,
+        };
+        cucumber.FormatterBuilder.build('progress', formatterOptions);
+        this.featureRunner = new cucumber.Runtime({
+          eventBroadcaster: this.eventBroadcaster,
+          testCases,
+          supportCodeLibrary,
+        });
+      });
   }
 }
 
@@ -155,11 +192,11 @@ class CucumberInterface {
   }
 
   registerCucumber(name, featureSource, ...stepDefinitionInitializers) {
-    this.executor.addSuite(parent => {
+    this.executor.addSuite((parent) => {
       this.suite = new CucumberSuite({
         name,
         featureSource,
-        stepDefinitionInitializers
+        stepDefinitionInitializers,
       });
       parent.add(this.suite);
     });
@@ -178,15 +215,15 @@ function getInterface(executor) {
     Given: cucumber.Given,
     Then: cucumber.Then,
     When: cucumber.When,
-    setWorldConstructor: cucumber.setWorldConstructor
+    setWorldConstructor: cucumber.setWorldConstructor,
   };
   return iface;
 }
 
 let globalInterface = getInterface(global.intern);
 globalInterface.default = globalInterface.registerCucumber;
-globalInterface.getInterface = function(...args) {
+globalInterface.getInterface = function (...args) {
   let iface = getInterface(...args);
   return Object.freeze(iface);
-}
+};
 module.exports = Object.freeze(globalInterface);

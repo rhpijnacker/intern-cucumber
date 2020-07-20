@@ -163,10 +163,11 @@ class CucumberSuite extends Suite.default {
           }
         }
         cucumber.setWorldConstructor(World);
+        const stepDefinitionFunctions = Object.freeze(cucumberFunctions());
         this.stepDefinitionInitializers.forEach((initializer) => {
           // Pass the cucumber as the `this' context to every step definition function
           // for backward compatibility with the intern 3 cucumber integration.
-          initializer.call(cucumber);
+          initializer.call(stepDefinitionFunctions);
         });
         let supportCodeLibrary = cucumber.supportCodeLibraryBuilder.finalize();
         let formatterOptions = {
@@ -203,19 +204,33 @@ class CucumberInterface {
   }
 }
 
+function defineStep(pattern, options, code) {
+  const delayedCode = (...args) =>
+    Promise.resolve(() => code(...args)).then(
+      () => new Promise((resolve) => setTimeout(resolve, 0))
+    );
+  cucumber.defineStep(pattern, options, delayedCode);
+}
+
+function cucumberFunctions() {
+  return {
+    After: cucumber.After,
+    AfterAll: cucumber.AfterAll,
+    Before: cucumber.Before,
+    BeforeAll: cucumber.BeforeAll,
+    Given: defineStep,
+    Then: defineStep,
+    When: defineStep,
+    setWorldConstructor: cucumber.setWorldConstructor,
+  };
+}
+
 function getInterface(executor) {
   let instance = new CucumberInterface(executor);
   let iface = {
     registerCucumber: instance.registerCucumber.bind(instance),
     // expose cucumber interface methods
-    After: cucumber.After,
-    AfterAll: cucumber.AfterAll,
-    Before: cucumber.Before,
-    BeforeAll: cucumber.BeforeAll,
-    Given: cucumber.Given,
-    Then: cucumber.Then,
-    When: cucumber.When,
-    setWorldConstructor: cucumber.setWorldConstructor,
+    ...cucumberFunctions(),
   };
   return iface;
 }

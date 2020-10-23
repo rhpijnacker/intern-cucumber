@@ -6,6 +6,7 @@
   "types": "plugin.d.ts",
   "scripts": {
     "build": "webpack --mode production && babel _tmp/browser/plugin.js -o _build/browser/plugin.js",
+    "webpack": "webpack --mode production",
     "test": "cross-env NODE_PATH=. intern"
   },
   "repository": {

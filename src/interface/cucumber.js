@@ -204,23 +204,15 @@ class CucumberInterface {
   }
 }
 
-function defineStep(pattern, options, code) {
-  const delayedCode = (...args) =>
-    Promise.resolve(() => code(...args)).then(
-      () => new Promise((resolve) => setTimeout(resolve, 0))
-    );
-  cucumber.defineStep(pattern, options, delayedCode);
-}
-
 function cucumberFunctions() {
   return {
     After: cucumber.After,
     AfterAll: cucumber.AfterAll,
     Before: cucumber.Before,
     BeforeAll: cucumber.BeforeAll,
-    Given: defineStep,
-    Then: defineStep,
-    When: defineStep,
+    Given: cucumber.Given,
+    Then: cucumber.Then,
+    When: cucumber.When,
     setWorldConstructor: cucumber.setWorldConstructor,
   };
 }

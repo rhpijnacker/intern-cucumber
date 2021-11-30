@@ -9,7 +9,7 @@ let config = {
   },
   output: {
     filename: '[name].js',
-    path: path.join(__dirname, '_tmp/browser')
+    path: path.join(__dirname, '_build/browser')
   },
   devtool: 'source-map',
   module: {
@@ -24,8 +24,7 @@ let config = {
   plugins: [
     new CleanWebpackPlugin({
       cleanOnceBeforeBuildPatterns: [
-        path.resolve('_build'),
-        path.resolve('_tmp')
+        path.resolve('_build')
       ]
     }),
     new CopyWebpackPlugin([

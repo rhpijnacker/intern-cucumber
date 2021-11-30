@@ -27,17 +27,19 @@ let config = {
         path.resolve('_build')
       ]
     }),
-    new CopyWebpackPlugin([
-      { from: path.resolve('LICENSE'), to: path.resolve('_build/') },
-      { from: path.resolve('package.json'), to: path.resolve('_build/') },
-      { from: path.resolve('README.md'), to: path.resolve('_build/') },
-      {
-        from: path.resolve('src/interface/cucumber.js'),
-        to: path.resolve('_build/interface/')
-      },
-      { from: path.resolve('src/plugin.js'), to: path.resolve('_build/') },
-      { from: path.resolve('src/plugin.d.ts'), to: path.resolve('_build/') }
-    ])
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: path.resolve('LICENSE'), to: path.resolve('_build/') },
+        { from: path.resolve('package.json'), to: path.resolve('_build/') },
+        { from: path.resolve('README.md'), to: path.resolve('_build/') },
+        {
+          from: path.resolve('src/interface/cucumber.js'),
+          to: path.resolve('_build/interface/')
+        },
+        { from: path.resolve('src/plugin.js'), to: path.resolve('_build/') },
+        { from: path.resolve('src/plugin.d.ts'), to: path.resolve('_build/') }
+      ]
+    })
   ],
   stats: {
     assets: false,
